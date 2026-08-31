@@ -956,6 +956,10 @@ def launch_point_picker(my_image):
     import threading, json, os, io
 
     # Data
+    # Shut down anything left running by a previous call, so re-running
+    # this cell does not leak a server and bind another port.
+    gr.close_all(verbose=False)
+
     points_store = []
     app = None
     SELECTED_POINTS = None
@@ -1043,14 +1047,14 @@ def launch_point_picker(my_image):
                 ip.user_ns['selected_points'] = SELECTED_POINTS
         except Exception:
             pass
-        threading.Thread(target=lambda: app.close(), daemon=True).start()
+        threading.Timer(0.5, demo.close).start()   # demo, not the launch() tuple
         return f"✅ Saved {len(SELECTED_POINTS)} points to `selected_points`. Closing…"
 
     with gr.Blocks(title="Point Picker (single image)") as demo:
         gr.Markdown("**Click on the image to add points.** Use Undo / Clear as needed, then press **Done**.")
         img = gr.Image(
             value=np.array(base_pil), label="Image (click to add points)",
-            type="numpy", interactive=True, sources=[]  # sources=[] disables uploads
+            type="numpy", interactive=False  # display-only; .select still fires on click
         )
         with gr.Row():
             undo_btn = gr.Button("↩️ Undo")
@@ -1066,8 +1070,8 @@ def launch_point_picker(my_image):
         done_btn.click(done_btn_click, outputs=[status])
 
 
-        app = demo.launch(inline=True, prevent_thread_lock=True)
-        return app
+        demo.launch(inline=True, prevent_thread_lock=True)
+        return demo
 
 
 # ##---------------------------------------------------
@@ -1224,7 +1228,7 @@ def launch_point_picker(my_image):
 #         except Exception:
 #             pass
 #         msg = f"✅ Saved A:{len(pts_left)} and B:{len(pts_right)} points to `selected_points_A/B`. Closing…"
-#         threading.Thread(target=lambda: app.close(), daemon=True).start()
+#         threading.Timer(0.5, demo.close).start()   # demo, not the launch() tuple
 #         return msg
 
 #     # ---------- UI ----------
@@ -1232,13 +1236,13 @@ def launch_point_picker(my_image):
 #         gr.Markdown("**Click points on each image.** Lines connect pairs by index: 0↔0, 1↔1, … (min length).")
 #         with gr.Row():
 #             with gr.Column():
-#                 imgL = gr.Image(value=np.array(baseL), label="Image A (click to add)", type="numpy", interactive=True, sources=[])
+#                 imgL = gr.Image(value=np.array(baseL), label="Image A (click to add)", type="numpy", interactive=False)
 #                 with gr.Row():
 #                     btn_undo_L = gr.Button("↩️ Undo A")
 #                     btn_clear_L = gr.Button("🧹 Clear A")
 #                 txtA = gr.Textbox(label="Points A (JSON)", value="[]", interactive=False)
 #             with gr.Column():
-#                 imgR = gr.Image(value=np.array(baseR), label="Image B (click to add)", type="numpy", interactive=True, sources=[])
+#                 imgR = gr.Image(value=np.array(baseR), label="Image B (click to add)", type="numpy", interactive=False)
 #                 with gr.Row():
 #                     btn_undo_R = gr.Button("↩️ Undo B")
 #                     btn_clear_R = gr.Button("🧹 Clear B")
@@ -1349,6 +1353,10 @@ def launch_point_matcher(image_left, image_right, gap=40, on_done=None, inline=T
         return canvas
 
     # ---------- state ----------
+    # Shut down anything left running by a previous call, so re-running
+    # this cell does not leak a server and bind another port.
+    gr.close_all(verbose=False)
+
     pts_left = []
     pts_right = []
     app = None
@@ -1435,7 +1443,7 @@ def launch_point_matcher(image_left, image_right, gap=40, on_done=None, inline=T
             pass
 
         msg = f"✅ Saved A:{len(pts_left)} and B:{len(pts_right)} points. Closing…"
-        threading.Thread(target=lambda: app.close(), daemon=True).start()
+        threading.Timer(0.5, demo.close).start()   # demo, not the launch() tuple
         return msg
 
     # ---------- UI ----------
@@ -1443,13 +1451,13 @@ def launch_point_matcher(image_left, image_right, gap=40, on_done=None, inline=T
         gr.Markdown("**Click points on each image.** Lines connect pairs by index: 0↔0, 1↔1, … (min length).")
         with gr.Row():
             with gr.Column():
-                imgL = gr.Image(value=np.array(baseL), label="Image A (click to add)", type="numpy", interactive=True, sources=[])
+                imgL = gr.Image(value=np.array(baseL), label="Image A (click to add)", type="numpy", interactive=False)
                 with gr.Row():
                     btn_undo_L = gr.Button("↩️ Undo A")
                     btn_clear_L = gr.Button("🧹 Clear A")
                 txtA = gr.Textbox(label="Points A (JSON)", value="[]", interactive=False)
             with gr.Column():
-                imgR = gr.Image(value=np.array(baseR), label="Image B (click to add)", type="numpy", interactive=True, sources=[])
+                imgR = gr.Image(value=np.array(baseR), label="Image B (click to add)", type="numpy", interactive=False)
                 with gr.Row():
                     btn_undo_R = gr.Button("↩️ Undo B")
                     btn_clear_R = gr.Button("🧹 Clear B")
@@ -1476,8 +1484,8 @@ def launch_point_matcher(image_left, image_right, gap=40, on_done=None, inline=T
         btn_clear_both.click(clear_both, outputs=[imgL, imgR, pair_view, txtA, txtB])
         btn_done.click(done_btn_click, outputs=[status])
 
-        app = demo.launch(inline=inline, prevent_thread_lock=True)
-        return app
+        demo.launch(inline=inline, prevent_thread_lock=True)
+        return demo
 
 
 
