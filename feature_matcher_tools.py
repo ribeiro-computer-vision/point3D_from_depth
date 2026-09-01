@@ -21,14 +21,9 @@ import matplotlib.cm as cm
 from tqdm.notebook import tqdm
 from skimage import img_as_ubyte
 
-## Imports (from inside the mast3r directory)
-
-from mast3r.model import AsymmetricMASt3R
-from mast3r.fast_nn import fast_reciprocal_NNs
-
-import mast3r.utils.path_to_dust3r
-from dust3r.inference import inference
-from dust3r.utils.image import load_images
+## MASt3R / dust3r are imported lazily inside mast3r_inference, not here, so
+## that this module still imports on a setup without them. The manual-PnP
+## notebook uses estimate_pose_pnp but never runs MASt3R.
 
 
 # visualize a few matches
@@ -92,6 +87,13 @@ class FeatureMatcher:
 
 
         """
+
+        # MASt3R / dust3r, imported here rather than at module scope (see note
+        # at the top of this file). path_to_dust3r must come first: importing it
+        # is what puts dust3r on sys.path.
+        import mast3r.utils.path_to_dust3r  # noqa: F401
+        from mast3r.fast_nn import fast_reciprocal_NNs
+        from dust3r.inference import inference
 
         # Inference
         output = inference([tuple(images)], model, device, batch_size=1, verbose=False)
