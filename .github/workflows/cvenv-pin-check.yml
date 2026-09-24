@@ -1,0 +1,25 @@
+name: cvenv pin check
+
+# Each notebook installs cvenv from GitHub at a tag written by hand in one cell,
+# and nothing keeps those pins in step. They have drifted before: three notebooks
+# on v0.1.15 while the bundle-adjustment one sat on v0.1.4, eleven releases back.
+# A stale pin installs cleanly, so the only symptom is a tutorial failing later in
+# a way that looks like its own bug.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pins-agree:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # Fails when the notebooks disagree with each other; only warns when they
+      # agree but trail cvenv's newest release, since pinning an older tag on
+      # purpose is legitimate and should not break CI whenever cvenv ships.
+      - run: python3 tools/check_cvenv_pin.py
