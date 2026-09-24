@@ -665,7 +665,9 @@ class ImageProcessor:
         else:
             depth_norm = np.zeros_like(depth_np, dtype=np.float32)
 
-        cmap_func = cm.get_cmap(cmap)
+        # matplotlib.cm.get_cmap was deprecated in 3.7 and REMOVED in 3.9.
+        # pyplot.get_cmap is the spelling that works on both sides of that.
+        cmap_func = plt.get_cmap(cmap)
         rgba = cmap_func(depth_norm)  # (H,W,4) floats in [0,1]
 
         if bg_mode == "transparent":
